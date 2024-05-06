@@ -1,0 +1,48 @@
+name: CI
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+            toolchain: stable
+            override: true
+    
+      - name: Install Rust wasm32-unknown-unknown target
+        run: rustup target add wasm32-unknown-unknown
+
+      - name: Cache Rust environment
+        uses: Swatinem/rust-cache@v1
+
+      - name: Install XTP CLI
+        run: curl https://static.dylibso.com/cli/install.sh | sudo sh
+
+      - name: Check XTP CLI version
+        run: xtp -v
+
+      - name: Install Extism js-pdk
+        run: |
+          curl -O https://raw.githubusercontent.com/extism/js-pdk/main/install.sh
+          sudo sh install.sh
+    
+      - name: Build test
+        run: |
+          cd tests/dom-to-json
+          npm i
+          npm run build
+
+      - name: Build plugin
+        run: cargo build --release --target wasm32-unknown-unknown
+
+      - name: Test example
+        run: xtp plugin test target/wasm32-unknown-unknown/release/rust_pdk_template.wasm --with tests/dom-to-json/plugin.wasm                  
+      
