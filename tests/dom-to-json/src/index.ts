@@ -5,7 +5,7 @@ export function test() {
   Test.assertEqual(
     "parser provides correct output type",
     dom.treeType,
-    "documentFragments",
+    "documentFragment",
   );
   Test.assertEqual(
     "parser identifies correct number of children",
